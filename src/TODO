@@ -1,0 +1,5 @@
+NOTE: I'm going to use Firebase instead of MySQL/MariaDB because it's easier and I'm just a prototypist as a founder. I just need to get it working for the user— Technical proficiency be damned.
+
+
+[] Create a firebase container for this project
+[] Connect to firebase 
