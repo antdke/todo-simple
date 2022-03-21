@@ -1,18 +1,15 @@
 import db from './firebase.js';
-import { collection, getDocs, addDoc, onSnapshot} from "firebase/firestore"
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore"
 
 
 import './App.css';
 import React, {useState, useEffect} from 'react';
 
 
-
 function App() {
 
   const [value, setValue] = useState("");
   const [todos, setTodos] = useState([]);
-  const [todoCounter, setTodoCounter] = useState(0)
-  //const [editedTodo, setEditedTodo] = useState("")
   const todosCollectionRef = collection(db, "todos")
 
 
@@ -20,44 +17,43 @@ function App() {
     
     const getTodos = async () => {
       const data = await getDocs(todosCollectionRef);
-      console.log(data)
+      setTodos(data.docs.map((doc) => ({...doc.data(), id: doc.id})))
     }
 
     getTodos()
-  },[value]);
+  },[]);
 
   function handleChange(e) {
     setValue(e.target.value)
   }
 
-  async function handleSubmit(e) {
+  // CREATE
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (value.trim().length > 0) {
       setValue("")
-      setTodoCounter(todoCounter + 1)
-      setTodos(todos => [...todos, {id: todoCounter, text: value}])
-
-
+      await addDoc(todosCollectionRef, {text: value, created: new Date()})
+      const data = await getDocs(todosCollectionRef);
+      setTodos(data.docs.map((doc) => ({...doc.data(), id: doc.id})))
     }   
   }
 
-
-  function handleDoneClick(id) {
-    // console.log(id) // debug
-    const notCompleteTodos = todos.filter((todo) => {
-      return todo.id !== id
-    })
-    setTodos(notCompleteTodos);
+  // DELETE
+  const handleDoneClick = async (id) => {
+    const todoDoc = doc(db, "todos", id)
+    await deleteDoc(todoDoc, id)
+    const data = await getDocs(todosCollectionRef);
+    setTodos(data.docs.map((doc) => ({...doc.data(), id: doc.id})))
   }
   
-  function handleEditClick(text, id) {
+  // EDIT
+  const handleEditClick = async (text, id) => {
     const editedTodo = window.prompt("Edit this task:", text)
     if (editedTodo != null && editedTodo.trim().length > 0) {
-      const notEditedTodos = todos.filter((todo) => {
-        return todo.id !== id
-      })
-      setTodos(notEditedTodos);
-      setTodos(todos => [...todos, {id: id, text: editedTodo}])
+      const todoDoc = doc(db, "todos", id)
+      await updateDoc(todoDoc, {text: editedTodo})
+      const data = await getDocs(todosCollectionRef);
+      setTodos(data.docs.map((doc) => ({...doc.data(), id: doc.id})))
     }
     
   }
@@ -78,7 +74,7 @@ function App() {
           </div>
           <div>
           <ul>
-            {todos.sort((a, b) => a.id - b.id).reverse().map((todo) => 
+            {todos.sort((a, b) => a.created - b.created).reverse().map((todo) => 
               <li key={todo.id}>
                 {todo.text} {" "}
                 <button key={todo.id} onClick={() => handleDoneClick(todo.id)}>Done!</button>
