@@ -41,7 +41,7 @@ function App() {
   // DELETE
   const handleDoneClick = async (id) => {
     const todoDoc = doc(db, "todos", id)
-    await deleteDoc(todoDoc, id)
+    await deleteDoc(todoDoc)
     const data = await getDocs(todosCollectionRef);
     setTodos(data.docs.map((doc) => ({...doc.data(), id: doc.id})))
   }
