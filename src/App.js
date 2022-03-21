@@ -1,5 +1,11 @@
+import db from './firebase.js';
+import { collection, getDocs, addDoc, onSnapshot} from "firebase/firestore"
+
+
 import './App.css';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+
+
 
 function App() {
 
@@ -7,18 +13,31 @@ function App() {
   const [todos, setTodos] = useState([]);
   const [todoCounter, setTodoCounter] = useState(0)
   //const [editedTodo, setEditedTodo] = useState("")
+  const todosCollectionRef = collection(db, "todos")
+
+
+  useEffect(() => {
+    
+    const getTodos = async () => {
+      const data = await getDocs(todosCollectionRef);
+      console.log(data)
+    }
+
+    getTodos()
+  },[value]);
 
   function handleChange(e) {
     setValue(e.target.value)
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (value.trim().length > 0) {
       setValue("")
       setTodoCounter(todoCounter + 1)
       setTodos(todos => [...todos, {id: todoCounter, text: value}])
-      
+
+
     }   
   }
 
